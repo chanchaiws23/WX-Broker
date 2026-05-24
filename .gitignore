@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -15,12 +14,14 @@ build/
 .env
 .env.local
 .env.*.local
+!.env.example
+!**/.env.example
 
 # Database
 *.db
 *.db-journal
 prisma/dev.db
-prisma/migrations/
+backend/prisma/dev.db
 
 # OS
 .DS_Store
