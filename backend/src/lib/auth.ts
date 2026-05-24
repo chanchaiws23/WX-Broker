@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { Request, Response } from "express";
 
 const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || "woxo-super-secret-key-change-in-production"
+  process.env.JWT_SECRET || "local-development-jwt-value"
 );
 
 const alg = "HS256";
@@ -27,7 +27,9 @@ export async function verifyToken(token: string) {
 }
 
 export async function getSessionFromRequest(req: Request) {
-  const token = req.cookies?.token;
+  const header = req.headers.authorization;
+  const bearerToken = header?.startsWith("Bearer ") ? header.slice("Bearer ".length).trim() : null;
+  const token = bearerToken || req.cookies?.token;
   if (!token) return null;
   return verifyToken(token);
 }

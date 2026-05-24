@@ -1,0 +1,66 @@
+name: woxa-broker
+
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=woxa
+      - POSTGRES_DB=woxa_broker
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - woxa_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U woxa -d woxa_broker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - woxa-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://woxa@db:5432/woxa_broker
+      - JWT_SECRET=${JWT_SECRET:-local-development-jwt-value}
+      - API_PORT=3001
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - woxa-network
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        API_URL: http://api:3001
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - woxa-network
+
+volumes:
+  woxa_pgdata:
+
+networks:
+  woxa-network:
+    driver: bridge

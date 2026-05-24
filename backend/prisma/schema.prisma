@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -13,6 +13,8 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model Broker {
@@ -22,7 +24,14 @@ model Broker {
   description String
   logoUrl     String
   website     String
-  brokerType  String
+  brokerType  BrokerType
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+enum BrokerType {
+  cfd
+  bond
+  stock
+  crypto
 }
